@@ -4,7 +4,7 @@
  * All rights reserved
  *
  * File: main.c
- * Version: 2
+ * Version: 3
  */
 
 #include <stdlib.h>
@@ -107,11 +107,10 @@ inline void loop()
 		keypress=0;
 		if(dice==D2D6)	// 2d6
 		{
-			diceroll=rng(0,35);
 			digitube4_led[0]=10;
-			digitube4_led[1]=diceroll/6+1;
+			digitube4_led[1]=rng(1,6);
 			digitube4_led[2]=10;
-			digitube4_led[3]=diceroll%6+1;
+			digitube4_led[3]=rng(1,6);
 		}
 		else
 		{
