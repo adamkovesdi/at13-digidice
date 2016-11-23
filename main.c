@@ -48,6 +48,15 @@ inline void setup()
 inline void loop()
 {
 	// main logic loop
+	if((rollkeypress) && (dicekeypress))
+	{
+		// both keys pressed - rng dry run 
+		unsigned int random;
+		random=rng(1,9999);
+		digitube4_setvalue(random);
+		// end of both keypress handler
+		return;
+	}
 	if(rollkeypress)
 	{
 		unsigned int random;
@@ -65,10 +74,8 @@ inline void loop()
 			digitube4_setvalue(random);
 		}
 		awake=WAKECYCLES;
-	}
-	else
-	{
-		if(awake)awake--;
+		// end of rollkey handler
+		return;
 	}
 	if(dicekeypress)
 	{
@@ -91,7 +98,11 @@ inline void loop()
 		}
 		unsigned int i;		// stay here for a while
 		for(i=0;i<BUTTONDELAY;i++) digitube4_display();
+		// end of dicekey handler
+		return;
 	}
+	// no keys pressed, count down towards sleep
+	if(awake)awake--;
 }
 
 int main(void)
