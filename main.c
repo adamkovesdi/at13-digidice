@@ -4,7 +4,7 @@
  * All rights reserved
  *
  * File: main.c
- * Version: 1
+ * Version: 2
  */
 
 #include <stdlib.h>
@@ -14,7 +14,7 @@
 #include "digitube4.h"
 #include "random.h"
 
-#define WAKECYCLES		10500	// 10500 ~ 30 seconds @ 1.2MHz clock
+#define WAKECYCLES		10500	// 10500 ~ 25 seconds @ 1.2MHz clock
 #define BUTTONDELAY		80		// 80 is ideal 
 
 #define ROLLSWITCH		PB1		// PB1 (MISO/AIN1/OC0B/INT0/PCINT1) pin 6
@@ -22,28 +22,24 @@
 #define rollkeypress	(!(GETBIT(PINB,ROLLSWITCH)))
 #define dicekeypress	(!(GETBIT(PINB,DICESWITCH)))
 
-volatile unsigned int counter, awake;
-volatile unsigned int dice=20;
+#define D2D6					5
+const unsigned char dices[] = { 4, 6, 8, 10, 12, 0xFF, 20, 100 }; // 0xFF is just a placeholder for 2D6
+
+volatile unsigned int awake;
+volatile unsigned char dice=6;
 
 ISR(PCINT0_vect)
 {
 	awake=WAKECYCLES;
 }
 
-ISR(TIM0_OVF_vect)
-{
-	counter++;
-}
-
 inline void setup()
 {
 	SETBIT(PORTB,ROLLSWITCH);			// set switch port to input
 	SETBIT(PORTB,DICESWITCH);			// set switch port to input
-	SETBIT(PCMSK,ROLLSWITCH);			// enable interrupt on switch port
+	// SETBIT(PCMSK,ROLLSWITCH);			// enable interrupt on switch port
 	SETBIT(PCMSK,DICESWITCH);			// enable interrupt on switch port
 	SETBIT(GIMSK,PCIE);				// enable Pin Change Interrupt
-	TCCR0B |= (1<<CS00);			// timer prescaler
-	SETBIT(TIMSK0,TOIE0);			// enable timer
 	digitube4_setup();
 	sei();
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN); // set up low power sleep mode 
@@ -54,9 +50,20 @@ inline void loop()
 	// main logic loop
 	if(rollkeypress)
 	{
-		int random;
-		random=rng(1,dice);
-		digitube4_setvalue(random);
+		unsigned int random;
+		if(dice==D2D6)	// 2d6
+		{
+			random=rng(0,35);
+			digitube4_led[0]=10;
+			digitube4_led[1]=random/6+1;
+			digitube4_led[2]=10;
+			digitube4_led[3]=random%6+1;
+		}
+		else
+		{
+			random=rng(1,dices[dice]);
+			digitube4_setvalue(random);
+		}
 		awake=WAKECYCLES;
 	}
 	else
@@ -65,23 +72,24 @@ inline void loop()
 	}
 	if(dicekeypress)
 	{
-		if(digitube4_led[0]==11) // only switch dice if d is shown
+		if((digitube4_led[0]==11)||(digitube4_led[2]==11)) // only if d is displayed
 		{
-			switch(dice)
-			{
-				case 100: dice=4; break;
-				case 20: dice=100; break;
-				case 12: dice=20; break;
-				case 10: dice=12; break;
-				case 8: dice=10; break;
-				case 6: dice=8; break;
-				case 4: dice=6; break;
-			}
+			if(dicekeypress) if(++dice==sizeof(dices)) dice=0; // advance in dice array with rollover detection
 		}
-		digitube4_off();
-		digitube4_setvalue(dice);
-		digitube4_led[0]=11;
-		unsigned char i;		// stay here for a while
+		// display selected dice
+		if(dice==D2D6)	// 2d6
+		{
+			digitube4_led[0]=10;
+			digitube4_led[1]=2;
+			digitube4_led[2]=11; // letter d
+			digitube4_led[3]=6;
+		}
+		else
+		{
+			digitube4_setvalue(dices[dice]);
+			digitube4_led[0]=11; // letter d
+		}
+		unsigned int i;		// stay here for a while
 		for(i=0;i<BUTTONDELAY;i++) digitube4_display();
 	}
 }
@@ -98,9 +106,7 @@ int main(void)
 			// turn off display and sleep
 			digitube4_off();
 			digitube4_display();
-			CLEARBIT(TIMSK0,TOIE0);			// stop timer
 			sleep_mode();
-			SETBIT(TIMSK0,TOIE0);			// enable timer
 		}
 	}
 	return 0;

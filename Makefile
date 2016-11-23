@@ -34,6 +34,9 @@ fuse:
 clean:
 	rm -f main.hex main.elf $(OBJECTS)
 
+stcheck:
+	cppcheck --enable=all *.c
+
 # file targets:
 main.elf: $(OBJECTS)
 	$(COMPILE) -o main.elf $(OBJECTS)

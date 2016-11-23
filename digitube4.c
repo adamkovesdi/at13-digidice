@@ -50,9 +50,10 @@ void digitube4_setvalue(unsigned int number) // program space greedy (division)
 
 void digitube4_display() // serious serial bitbang
 {
-	unsigned char todisplay,digit,bit;
+	unsigned char digit,bit;
 	for(digit=0;digit<4;digit++)
 	{
+		unsigned char todisplay;
 		todisplay=digitube4_font[digitube4_led[digit]]; // display segments 
 		for(bit=0;bit<8;bit++)
 		{
