@@ -13,7 +13,7 @@
 void digitube4_setup();
 void digitube4_off();
 void digitube4_display();
-void digitube4_setvalue(int);
+void digitube4_setvalue(unsigned int);
 
 volatile unsigned char digitube4_led[4];	
 

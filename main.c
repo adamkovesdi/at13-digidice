@@ -11,8 +11,8 @@
 #include <avr/io.h> 
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <util/delay.h>
 #include "digitube4.h"
+#include "random.h"
 
 #define WAKECYCLES		10500	// 10500 ~ 30 seconds @ 1.2MHz clock
 #define BUTTONDELAY		80		// 80 is ideal 
@@ -39,7 +39,7 @@ inline void setup()
 {
 	SETBIT(PORTB,ROLLSWITCH);			// set switch port to input
 	SETBIT(PORTB,DICESWITCH);			// set switch port to input
-	// SETBIT(PCMSK,ROLLSWITCH);			// enable interrupt on switch port
+	SETBIT(PCMSK,ROLLSWITCH);			// enable interrupt on switch port
 	SETBIT(PCMSK,DICESWITCH);			// enable interrupt on switch port
 	SETBIT(GIMSK,PCIE);				// enable Pin Change Interrupt
 	TCCR0B |= (1<<CS00);			// timer prescaler
@@ -52,16 +52,16 @@ inline void setup()
 inline void loop()
 {
 	// main logic loop
-	int random;
 	if(rollkeypress)
 	{
-		random=counter%dice+1;
+		int random;
+		random=rng(1,dice);
 		digitube4_setvalue(random);
 		awake=WAKECYCLES;
 	}
 	else
 	{
-		if(awake--==0)awake=0;
+		if(awake)awake--;
 	}
 	if(dicekeypress)
 	{

@@ -28,7 +28,7 @@ void digitube4_off()
 	digitube4_led[3]=10;
 }
 
-void digitube4_setvalue(int number) // program space greedy (division)
+void digitube4_setvalue(unsigned int number) // program space greedy (division)
 {
 	digitube4_led[0]=number/1000%10;
 	digitube4_led[1]=number/100%10;

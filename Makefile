@@ -9,7 +9,7 @@ PROGRAMMER = -c usbtiny
 # PROGRAMMER = -c usbasp
 
 FUSES			=	-U lfuse:w:0x6a:m -U hfuse:w:0xff:m
-OBJECTS		= main.o digitube4.o 
+OBJECTS		= main.o digitube4.o random.o
 
 CFLAGS += -DF_CPU=$(F_CPU)
 
