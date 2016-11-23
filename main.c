@@ -45,39 +45,39 @@ inline void setup()
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN); // set up low power sleep mode 
 }
 
+unsigned char keypress=0;
+unsigned char counter=0;
+
 inline void loop()
 {
 	// main logic loop
+	unsigned int diceroll;
+
 	if((rollkeypress) && (dicekeypress))
 	{
 		// both keys pressed - rng dry run 
-		unsigned int random;
-		random=rng(1,9999);
-		digitube4_setvalue(random);
+		diceroll=rng(1,9999);
+		digitube4_setvalue(diceroll);
 		// end of both keypress handler
 		return;
 	}
-	if(rollkeypress)
+
+	if(rollkeypress)	// roll key pressed
 	{
-		unsigned int random;
-		if(dice==D2D6)	// 2d6
+		awake=WAKECYCLES;
+		if(!keypress)
 		{
-			random=rng(0,35);
-			digitube4_led[0]=10;
-			digitube4_led[1]=random/6+1;
-			digitube4_led[2]=10;
-			digitube4_led[3]=random%6+1;
+			keypress=1;
 		}
 		else
 		{
-			random=rng(1,dices[dice]);
-			digitube4_setvalue(random);
+			digitube4_setvalue((counter++)%100); // roll effect
 		}
-		awake=WAKECYCLES;
 		// end of rollkey handler
 		return;
 	}
-	if(dicekeypress)
+
+	if(dicekeypress)	// dice key pressed
 	{
 		if((digitube4_led[0]==11)||(digitube4_led[2]==11)) // only if d is displayed
 		{
@@ -100,6 +100,24 @@ inline void loop()
 		for(i=0;i<BUTTONDELAY;i++) digitube4_display();
 		// end of dicekey handler
 		return;
+	}
+
+	if(keypress) // roll key release event
+	{
+		keypress=0;
+		if(dice==D2D6)	// 2d6
+		{
+			diceroll=rng(0,35);
+			digitube4_led[0]=10;
+			digitube4_led[1]=diceroll/6+1;
+			digitube4_led[2]=10;
+			digitube4_led[3]=diceroll%6+1;
+		}
+		else
+		{
+			diceroll=rng(1,dices[dice]);
+			digitube4_setvalue(diceroll);
+		}
 	}
 	// no keys pressed, count down towards sleep
 	if(awake)awake--;
